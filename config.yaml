@@ -1,0 +1,307 @@
+# Configuration File for SDSS Astronomical Classification
+# Research-Grade Hyperparameters and Settings
+
+# ==============================================================================
+# REPRODUCIBILITY & RANDOM SEEDS
+# ==============================================================================
+reproducibility:
+  seed: 42
+  python_hashseed: "42"
+  tensorflow_log_level: 2  # 0=all, 1=info, 2=warning, 3=error
+
+# ==============================================================================
+# DATA CONFIGURATION
+# ==============================================================================
+data:
+  # Input paths
+  csv_path: "Skyserver_SQL2_27_2018 6_51_39 PM.csv"
+  data_directory: "data"
+  results_directory: "results"
+  models_directory: "models"
+  
+  # Data split
+  test_size: 0.2
+  validation_size: 0.2
+  stratify: true
+  
+  # Feature selection
+  drop_columns:
+    - "objid"
+    - "specobjid"
+    - "rerun"
+  
+  target_column: "class"
+  
+  # Normalization
+  normalization_method: "StandardScaler"  # StandardScaler or MinMaxScaler
+  
+  # Photometric features
+  photometric_bands:
+    - "u"
+    - "g"
+    - "r"
+    - "i"
+    - "z"
+
+# ==============================================================================
+# CROSS-VALIDATION CONFIGURATION
+# ==============================================================================
+cross_validation:
+  method: "StratifiedKFold"
+  n_splits: 5
+  shuffle: true
+  random_state: 42
+  
+  # Confidence intervals
+  ci_level: 0.95  # 95% confidence interval
+
+# ==============================================================================
+# BASELINE MODELS CONFIGURATION
+# ==============================================================================
+baseline_models:
+  
+  logistic_regression:
+    enabled: true
+    max_iter: 1000
+    solver: "lbfgs"
+    random_state: 42
+    n_jobs: -1
+  
+  random_forest:
+    enabled: true
+    n_estimators: 300
+    max_depth: 20
+    min_samples_split: 2
+    min_samples_leaf: 1
+    random_state: 42
+    n_jobs: -1
+  
+  gradient_boosting:
+    enabled: true
+    n_estimators: 200
+    learning_rate: 0.05
+    max_depth: 3
+    min_samples_split: 2
+    min_samples_leaf: 1
+    random_state: 42
+  
+  svm:
+    enabled: true
+    kernel: "rbf"
+    C: 1.0
+    gamma: "scale"
+    probability: true
+    random_state: 42
+  
+  knn:
+    enabled: true
+    n_neighbors: 7
+    weights: "uniform"
+    metric: "minkowski"
+    n_jobs: -1
+
+# ==============================================================================
+# NEURAL NETWORK ARCHITECTURE
+# ==============================================================================
+neural_network:
+  architecture:
+    - name: "Input"
+      type: "input"
+      shape_input: ~  # Auto-inferred from data
+    
+    - name: "Dense_1"
+      type: "dense"
+      units: 256
+      activation: "relu"
+      kernel_regularizer: "l2"
+      l2_rate: 0.001
+    
+    - name: "BatchNorm_1"
+      type: "batch_normalization"
+      momentum: 0.99
+      epsilon: 0.001
+    
+    - name: "Dropout_1"
+      type: "dropout"
+      rate: 0.4
+    
+    - name: "Dense_2"
+      type: "dense"
+      units: 128
+      activation: "relu"
+      kernel_regularizer: "l2"
+      l2_rate: 0.001
+    
+    - name: "BatchNorm_2"
+      type: "batch_normalization"
+      momentum: 0.99
+      epsilon: 0.001
+    
+    - name: "Dropout_2"
+      type: "dropout"
+      rate: 0.3
+    
+    - name: "Dense_3"
+      type: "dense"
+      units: 64
+      activation: "relu"
+      kernel_regularizer: "l2"
+      l2_rate: 0.001
+    
+    - name: "BatchNorm_3"
+      type: "batch_normalization"
+      momentum: 0.99
+      epsilon: 0.001
+    
+    - name: "Dropout_3"
+      type: "dropout"
+      rate: 0.2
+    
+    - name: "Output"
+      type: "dense"
+      units: ~  # Auto-inferred from num_classes
+      activation: "softmax"
+  
+  # Compilation
+  optimizer:
+    name: "Adam"
+    learning_rate: 0.001
+    beta_1: 0.9
+    beta_2: 0.999
+  
+  loss: "sparse_categorical_crossentropy"
+  metrics:
+    - "accuracy"
+  
+  # Training
+  training:
+    batch_size: 32
+    epochs: 150
+    validation_split: 0.2
+    shuffle: true
+    verbose: 1
+  
+  # Early stopping
+  early_stopping:
+    enabled: true
+    monitor: "val_loss"
+    patience: 15
+    restore_best_weights: true
+    min_delta: 0.0001
+
+# ==============================================================================
+# UNCERTAINTY QUANTIFICATION (MC DROPOUT)
+# ==============================================================================
+uncertainty:
+  method: "MC_Dropout"
+  n_iterations: 50
+  temperature: 1.0
+  enabled: true
+
+# ==============================================================================
+# HYPERPARAMETER TUNING (Optional - for future work)
+# ==============================================================================
+hyperparameter_tuning:
+  enabled: false
+  method: "grid_search"  # grid_search, random_search, bayesian
+  
+  # Grid search ranges
+  grid:
+    learning_rate: [0.0001, 0.001, 0.01]
+    batch_size: [16, 32, 64]
+    l2_rate: [0.0001, 0.001, 0.01]
+    dropout_rate: [0.2, 0.4, 0.6]
+
+# ==============================================================================
+# VISUALIZATION CONFIGURATION
+# ==============================================================================
+visualization:
+  style: "seaborn-v0_8-darkgrid"
+  palette: "husl"
+  figure_dpi: 300
+  figure_format: "png"
+  
+  colors:
+    star: "#FF6B6B"
+    galaxy: "#4ECDC4"
+    quasar: "#45B7D1"
+    correct: "#2ECC71"
+    incorrect: "#E74C3C"
+
+# ==============================================================================
+# FEATURE IMPORTANCE
+# ==============================================================================
+feature_importance:
+  method: "permutation"
+  n_repeats: 30
+  n_jobs: -1
+  
+  # SHAP (optional - future work)
+  shap_enabled: false
+  shap_type: "tree"  # tree, kernel, deep
+  shap_n_samples: 100
+
+# ==============================================================================
+# REPORTING & LOGGING
+# ==============================================================================
+reporting:
+  save_metadata: true
+  save_visualizations: true
+  save_model: true
+  save_predictions: true
+  verbose: true
+  
+  # Output files
+  metadata_file: "results/metadata.json"
+  summary_file: "results/research_summary.txt"
+  future_work_file: "results/future_work.txt"
+  checkpoint_file: "models/best_model.h5"
+
+# ==============================================================================
+# ASTROPHYSICAL CONFIGURATION
+# ==============================================================================
+astronomy:
+  dataset_name: "SDSS DR18"
+  survey_url: "https://www.sdss.org/"
+  
+  classes:
+    - name: "STAR"
+      description: "Stellar objects"
+    - name: "GALAXY"
+      description: "Extragalactic objects"
+    - name: "QSO"
+      description: "Quasi-stellar objects / Active Galactic Nuclei"
+  
+  # Physical wavelength ranges (Angstroms)
+  filters:
+    u:
+      wavelength_center: 3540
+      description: "Ultraviolet band"
+    g:
+      wavelength_center: 4770
+      description: "Green band"
+    r:
+      wavelength_center: 6230
+      description: "Red band"
+    i:
+      wavelength_center: 7625
+      description: "Infrared band"
+    z:
+      wavelength_center: 9134
+      description: "Deep infrared band"
+
+# ==============================================================================
+# PUBLICATION SETTINGS
+# ==============================================================================
+publication:
+  title: "Automated Photometric Classification of SDSS Objects using Deep Learning"
+  authors: "Research Team"
+  journal: "The Astrophysical Journal"
+  year: 2026
+  
+  keywords:
+    - "Deep learning"
+    - "Astronomical classification"
+    - "SDSS"
+    - "Photometry"
+    - "Machine learning"
