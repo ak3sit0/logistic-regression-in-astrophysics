@@ -50,9 +50,9 @@ clean = raw.drop(columns=[c for c in config.drop_columns if c in raw.columns])
 
 REGIMES = ['all', 'photometry', 'photometry_color']
 REGIME_LABELS = {
-    'all': 'Todo\n(+ metadatos)',
-    'photometry': 'Solo fotometría\n(honesto)',
-    'photometry_color': 'Fotometría\n+ color',
+    'all': 'All\n(+ metadata)',
+    'photometry': 'Photometry only\n(honest)',
+    'photometry_color': 'Photometry\n+ color',
 }
 
 print("=" * 100)
@@ -148,7 +148,7 @@ nn_stds = [regime_results[r]['nn_accuracy_std'] for r in REGIMES]
 bars_rf = ax.bar(x - width / 2, rf_accs, width, label='Random Forest', color='#1976D2',
                   alpha=0.85, edgecolor='black')
 bars_nn = ax.bar(x + width / 2, nn_means, width, yerr=nn_stds, capsize=5,
-                  label=f'Red Neuronal (media de {N_FOLDS} folds)', color='#2E7D32',
+                  label=f'Neural Network (mean of {N_FOLDS} folds)', color='#2E7D32',
                   alpha=0.85, edgecolor='black')
 
 for bar in bars_rf:
@@ -163,7 +163,7 @@ for bar, std in zip(bars_nn, nn_stds):
 ax.set_xticks(x)
 ax.set_xticklabels([REGIME_LABELS[r] for r in REGIMES], fontsize=11)
 ax.set_ylabel('Accuracy (test set)', fontsize=12, fontweight='bold')
-ax.set_title(f'Accuracy por régimen de features (NN: media ± std de {N_FOLDS} folds)',
+ax.set_title(f'Accuracy by feature regime (NN: mean ± std over {N_FOLDS} folds)',
               fontweight='bold', fontsize=13)
 ax.set_ylim([0.5, 1.0])
 ax.legend(fontsize=10)
@@ -188,7 +188,7 @@ ax.barh(range(len(imp_all)), imp_all['importance'], xerr=imp_all['std'],
 ax.set_yticks(range(len(imp_all)))
 ax.set_yticklabels(imp_all['feature'], fontsize=10)
 ax.set_xlabel('Permutation Importance (Random Forest)', fontsize=11, fontweight='bold')
-ax.set_title('Importancia de features — rojo = metadatos de observación (fuga)',
+ax.set_title('Feature importance — red = observational metadata (leakage risk)',
               fontweight='bold', fontsize=12)
 ax.invert_yaxis()
 ax.grid(True, alpha=0.3, axis='x')
